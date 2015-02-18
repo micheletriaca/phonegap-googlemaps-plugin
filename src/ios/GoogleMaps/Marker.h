@@ -15,6 +15,7 @@
 @property (nonatomic, strong) GoogleMapsViewController* mapCtrl;
 @property (nonatomic, strong) NSMutableDictionary* iconCache;
 - (void)createMarker:(CDVInvokedUrlCommand*)command;
+- (void)createMarkers:(CDVInvokedUrlCommand*)command;
 - (void)showInfoWindow:(CDVInvokedUrlCommand*)command;
 - (void)hideInfoWindow:(CDVInvokedUrlCommand*)command;
 - (void)isInfoWindowShown:(CDVInvokedUrlCommand*)command;

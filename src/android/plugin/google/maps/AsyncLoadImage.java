@@ -3,21 +3,21 @@ package plugin.google.maps;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.AbstractMap;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
 public class AsyncLoadImage extends AsyncTask<String, Void, Bitmap> {
-  private HashMap<String, Bitmap> mCache = null;
+  private AbstractMap<String, Bitmap> mCache = null;
   private AsyncLoadImageInterface targetPlugin;
 
   public AsyncLoadImage(AsyncLoadImageInterface plugin) {
     targetPlugin = plugin;
   }
   
-  public AsyncLoadImage(AsyncLoadImageInterface plugin, HashMap<String, Bitmap> cache) {
+  public AsyncLoadImage(AsyncLoadImageInterface plugin, AbstractMap<String, Bitmap> cache) {
     mCache = cache;
     targetPlugin = plugin;
   }

@@ -795,6 +795,62 @@ App.prototype.setPadding = function(p1, p2, p3, p4) {
 //-------------
 // Marker
 //-------------
+App.prototype.addMarkers = function(markersOptions, callback){
+  var self = this;
+  function setDefValues(markerOptions){
+    markerOptions.position = markerOptions.position || {};
+    markerOptions.position.lat = markerOptions.position.lat || 0.0;
+    markerOptions.position.lng = markerOptions.position.lng || 0.0;
+    markerOptions.anchor = markerOptions.anchor || [0.5, 0.5];
+    markerOptions.draggable = markerOptions.draggable || false;
+    markerOptions.icon = markerOptions.icon || undefined;
+    markerOptions.snippet = markerOptions.snippet || undefined;
+    markerOptions.title = markerOptions.title || undefined;
+    markerOptions.visible = markerOptions.visible === undefined ? true : markerOptions.visible;
+    markerOptions.flat = markerOptions.flat || false;
+    markerOptions.rotation = markerOptions.rotation || 0;
+    markerOptions.opacity = parseFloat("" + markerOptions.opacity, 10) || 1;
+    markerOptions.disableAutoPan = markerOptions.disableAutoPan === undefined ? false: markerOptions.disableAutoPan;
+    if ("styles" in markerOptions) {
+      markerOptions.styles = typeof markerOptions.styles === "object" ? markerOptions.styles : {};
+      
+      if ("color" in markerOptions.styles) {
+        markerOptions.styles.color = HTMLColor2RGBA(markerOptions.styles.color || "#000000");
+      }
+    }
+    return markerOptions;
+  }
+
+  for(var i = 0; i < markersOptions.length; i++){
+    markersOptions[i] = setDefValues(markersOptions[i]);
+  }
+
+  cordova.exec(function(results) {
+    var markers = [];
+    function pushResult(markerOptions, result){
+      markerOptions.hashCode = result.hashCode;
+      var marker = new Marker(self, result.id, markerOptions);
+      MARKERS[result.id] = marker;
+      OVERLAYS[result.id] = marker;
+    
+      if (typeof markerOptions.markerClick === "function") {
+        marker.on(plugin.google.maps.event.MARKER_CLICK, markerOptions.markerClick);
+      }
+      if (typeof markerOptions.infoClick === "function") {
+        marker.on(plugin.google.maps.event.INFO_CLICK, markerOptions.infoClick);
+      }
+      markers.push(marker);
+    }
+    for(var i = 0; i < results.length; i++){
+      pushResult(markersOptions[i], results[i]);
+    }
+    if (typeof callback === "function") {
+      callback.call(self,  markers, self);
+    }
+  }, self.errorHandler, PLUGIN_NAME, 'exec', ['Marker.createMarkers', markersOptions]);
+
+};
+
 App.prototype.addMarker = function(markerOptions, callback) {
   var self = this;
   markerOptions.position = markerOptions.position || {};
