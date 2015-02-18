@@ -483,9 +483,12 @@ public class PluginMarker extends MyPlugin {
 		}
 
 		if (iconUrl.indexOf("http") == -1) {
+			String iconUrlHash = "base64_" + String.valueOf(iconUrl.hashCode());
 			Bitmap image = null;
-
-			if (iconUrl.indexOf("data:image/") > -1 && iconUrl.indexOf(";base64,") > -1) {
+			
+			if (cache.containsKey(iconUrlHash)){
+				image = cache.get(iconUrlHash);
+			} else if (iconUrl.indexOf("data:image/") > -1 && iconUrl.indexOf(";base64,") > -1) {
 				String[] tmp = iconUrl.split(",");
 				image = PluginUtil.getBitmapFromBase64encodedImage(tmp[1]);
 			} else {
@@ -503,6 +506,8 @@ public class PluginMarker extends MyPlugin {
 			if (image == null) {
 				callback.onMarkerIconLoaded(marker);
 				return;
+			} else if (!cache.containsKey(iconUrlHash)){
+				cache.put(iconUrlHash, image);
 			}
 
 			Boolean isResized = false;
