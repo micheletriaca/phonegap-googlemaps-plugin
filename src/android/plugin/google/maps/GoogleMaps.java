@@ -91,20 +91,20 @@ import com.google.android.gms.maps.model.VisibleRegion;
 
 @SuppressWarnings("deprecation")
 public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, OnMarkerClickListener,
-      OnInfoWindowClickListener, OnMapClickListener, OnMapLongClickListener,
-      OnCameraChangeListener, OnMapLoadedCallback, OnMarkerDragListener,
-      OnMyLocationButtonClickListener, InfoWindowAdapter {
+OnInfoWindowClickListener, OnMapClickListener, OnMapLongClickListener,
+OnCameraChangeListener, OnMapLoadedCallback, OnMarkerDragListener,
+OnMyLocationButtonClickListener, InfoWindowAdapter {
   private final String TAG = "GoogleMapsPlugin";
   private final HashMap<String, PluginEntry> plugins = new HashMap<String, PluginEntry>();
   private float density;
-  
+
   private enum EVENTS {
     onScrollChanged
   }
   private enum TEXT_STYLE_ALIGNMENTS {
     left, center, right
   }
-  
+
   private JSONObject mapDivLayoutJSON = null;
   private MapView mapView = null;
   public GoogleMap map = null;
@@ -117,7 +117,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   private MyPluginLayout mPluginLayout = null;
   private LocationClient locationClient = null;
   private boolean isDebug = false;
-  
+
   @SuppressLint("NewApi") @Override
   public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
     super.initialize(cordova, webView);
@@ -131,16 +131,16 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       ApplicationInfo appInfo = manager.getApplicationInfo(activity.getPackageName(), 0);
       isDebug = (appInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) == ApplicationInfo.FLAG_DEBUGGABLE;
     } catch (Exception e) {}
-    
+
     Log.i("CordovaLog", "This app uses phonegap-googlemaps-plugin version " + PLUGIN_VERSION);
 
     if (isDebug) {
       cordova.getThreadPool().execute(new Runnable() {
         @Override
         public void run() {
-  
+
           try {
-            
+
             JSONArray params = new JSONArray();
             params.put("get");
             params.put("http://plugins.cordova.io/api/plugin.google.maps");
@@ -158,7 +158,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
                       Log.i("CordovaLog", "phonegap-googlemaps-plugin version " + latestVersion + " is available.");
                     }
                   } catch (JSONException e) {}
-                  
+
                 }
               }
             });
@@ -170,7 +170,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     cordova.getActivity().runOnUiThread(new Runnable() {
       @SuppressLint("NewApi")
       public void run() {
-      /*
+        /*
           try {
             Method method = webView.getClass().getMethod("getSettings");
             WebSettings settings = (WebSettings)method.invoke(null);
@@ -179,11 +179,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           } catch (Exception e) {
             e.printStackTrace();
           }
-       */
+         */
         if (Build.VERSION.SDK_INT >= 11){
           webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
-        
+
         root.setBackgroundColor(Color.WHITE);
         if (VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
           activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -191,16 +191,16 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         if (VERSION.SDK_INT <= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
           Log.d(TAG, "Google Maps Plugin reloads the browser to change the background color as transparent.");
           webView.setBackgroundColor(0);
-            try {
-              Method method = webView.getClass().getMethod("reload");
-              method.invoke(webView);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
+          try {
+            Method method = webView.getClass().getMethod("reload");
+            method.invoke(webView);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       }
     });
-    
+
   }
 
   @Override
@@ -221,13 +221,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           return;
         }
         if ("exec".equals(action)) {
-          
+
           try {
             String classMethod = args.getString(0);
             String[] params = classMethod.split("\\.", 0);
-            
+
             if ("Map.setOptions".equals(classMethod)) {
-              
+
               JSONObject jsonParams = args.getJSONObject(1);
               if (jsonParams.has("backgroundColor")) {
                 JSONArray rgba = jsonParams.getJSONArray("backgroundColor");
@@ -239,12 +239,12 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
                   } catch (JSONException e) {}
                 }
               }
-              
+
             }
-            
+
             // Load the class plugin
             GoogleMaps.this.loadPlugin(params[0]);
-            
+
             PluginEntry entry = GoogleMaps.this.plugins.get(params[0]);
             if (params.length == 2 && entry != null) { 
               entry.plugin.execute("execute", args, callbackContext);
@@ -263,6 +263,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
             }
             method.invoke(GoogleMaps.this, args, callbackContext);
           } catch (Exception e) {
+            Log.e("PLUGIN", e.getCause().getMessage(), e.getCause());
             e.printStackTrace();
             callbackContext.error("'" + action + "' is not defined in GoogleMaps plugin.");
           }
@@ -270,7 +271,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       }
     };
     cordova.getActivity().runOnUiThread(runnable);
-    
+
     return true;
   }
 
@@ -306,22 +307,22 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     this.sendNoResult(callbackContext);
   }
-  
+
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   private void getMap(JSONArray args, final CallbackContext callbackContext) throws JSONException {
     if (map != null) {
       callbackContext.success();
       return;
     }
-    
+
     mPluginLayout = new MyPluginLayout(webView, activity);
-    
+
     // ------------------------------
     // Check of Google Play Services
     // ------------------------------
     int checkGooglePlayServices = GooglePlayServicesUtil
         .isGooglePlayServicesAvailable(activity);
-    
+
     if (checkGooglePlayServices != ConnectionResult.SUCCESS) {
       // google play services is missing!!!!
       /*
@@ -337,12 +338,12 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         Method getErrorDialogMethod = GooglePlayServicesUtil.class.getMethod("getErrorDialog", int.class, Activity.class, int.class);
         errorDialog = (Dialog)getErrorDialogMethod.invoke(null, checkGooglePlayServices, activity, 1);
       } catch (Exception e) {};
-      
+
       if (errorDialog != null) {
         errorDialog.show();
       } else {
         boolean isNeedToUpdate = false;
-        
+
         String errorMsg = "Google Maps Android API v2 is not available for some reason on this device. Do you install the latest Google Play Services from Google Play Store?";
         switch (checkGooglePlayServices) {
         //case ConnectionResult.DATE_INVALID:
@@ -385,26 +386,26 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           isNeedToUpdate = true;
           break;
         }
-        
+
         final boolean finalIsNeedToUpdate = isNeedToUpdate;
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
         alertDialogBuilder
-          .setMessage(errorMsg)
-          .setCancelable(false)
-          .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int id) {
-              dialog.dismiss();
-              if (finalIsNeedToUpdate) {
-                try {
-                  activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.gms")));
-                } catch (android.content.ActivityNotFoundException anfe) {
-                  activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=appPackageName")));
-                }
+        .setMessage(errorMsg)
+        .setCancelable(false)
+        .setPositiveButton("Close", new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog,int id) {
+            dialog.dismiss();
+            if (finalIsNeedToUpdate) {
+              try {
+                activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.gms")));
+              } catch (android.content.ActivityNotFoundException anfe) {
+                activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=appPackageName")));
               }
             }
-          }); 
+          }
+        }); 
         AlertDialog alertDialog = alertDialogBuilder.create();
-        
+
         // show it
         alertDialog.show();
       }
@@ -416,24 +417,24 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     // Check the API key
     ApplicationInfo appliInfo = null;
     try {
-        appliInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
+      appliInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
     } catch (NameNotFoundException e) {}
-    
+
     String API_KEY = appliInfo.metaData.getString("com.google.android.maps.v2.API_KEY");
     if ("API_KEY_FOR_ANDROID".equals(API_KEY)) {
-    
+
       AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
-      
+
       alertDialogBuilder
-        .setMessage("Please replace 'API_KEY_FOR_ANDROID' in the platforms/android/AndroidManifest.xml with your API Key!")
-        .setCancelable(false)
-        .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog,int id) {
-            dialog.dismiss();
-          }
-        }); 
+      .setMessage("Please replace 'API_KEY_FOR_ANDROID' in the platforms/android/AndroidManifest.xml with your API Key!")
+      .setCancelable(false)
+      .setPositiveButton("Close", new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog,int id) {
+          dialog.dismiss();
+        }
+      }); 
       AlertDialog alertDialog = alertDialogBuilder.create();
-      
+
       // show it
       alertDialog.show();
     }
@@ -453,7 +454,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     //background color
     if (params.has("backgroundColor")) {
       JSONArray rgba = params.getJSONArray("backgroundColor");
-      
+
       int backgroundColor = Color.WHITE;
       if (rgba != null && rgba.length() == 4) {
         try {
@@ -461,9 +462,9 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           this.mPluginLayout.setBackgroundColor(backgroundColor);
         } catch (JSONException e) {}
       }
-      
+
     }
-    
+
     //controls
     if (params.has("controls")) {
       JSONObject controls = params.getJSONObject("controls");
@@ -475,7 +476,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         options.zoomControlsEnabled(controls.getBoolean("zoom"));
       }
     }
-    
+
     //gestures
     if (params.has("gestures")) {
       JSONObject gestures = params.getJSONObject("gestures");
@@ -493,7 +494,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         options.zoomGesturesEnabled(gestures.getBoolean("zoom"));
       }
     }
-    
+
     // map type
     if (params.has("mapType")) {
       String typeStr = params.getString("mapType");
@@ -532,12 +533,12 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       }
       options.camera(builder.build());
     }
-    
+
     mapView = new MapView(activity, options);
     mapView.onCreate(null);
     mapView.onResume();
     map = mapView.getMap();
-    
+
     //controls
     if (params.has("controls")) {
       JSONObject controls = params.getJSONObject("controls");
@@ -552,7 +553,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         map.setIndoorEnabled(isEnabled);
       }
     }
-    
+
     // Set event listener
     map.setOnCameraChangeListener(this);
     map.setOnInfoWindowClickListener(this);
@@ -562,7 +563,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     map.setOnMarkerClickListener(this);
     map.setOnMarkerDragListener(this);
     map.setOnMyLocationButtonClickListener(this);
-    
+
     // Load PluginMap class
     this.loadPlugin("Map");
     //Custom info window
@@ -578,11 +579,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       this.resizeMap(args, callbackContext);
     }
   }
-  
+
   private float contentToView(long d) {
     return d * this.density;
   }
-  
+
   //-----------------------------------
   // Create the instance of class
   //-----------------------------------
@@ -593,11 +594,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     try {
       Class pluginCls = Class.forName("plugin.google.maps.Plugin" + serviceName);
-      
+
       CordovaPlugin plugin = (CordovaPlugin) pluginCls.newInstance();
       PluginEntry pluginEntry = new PluginEntry("GoogleMaps", plugin);
       this.plugins.put(serviceName, pluginEntry);
-      
+
       try {
         Class cordovaPref = Class.forName("org.apache.cordova.CordovaPreferences");
         if (cordovaPref != null) {
@@ -607,13 +608,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           }
         }
       } catch (Exception e2) {}
-      
+
       plugin.initialize(this.cordova, webView);
       ((MyPluginInterface)plugin).setMapCtrl(this);
       if (map == null) {
         Log.e(TAG, "map is null!");
       }
-      
+
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -627,8 +628,8 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     options.add(new LatLng(0, -180));
     options.add(new LatLng(0, -90));
     map.addPolygon(options);
-    
-    
+
+
     callbackContext.success();
     return true;
   }
@@ -645,11 +646,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     try {
       event = EVENTS.valueOf(id);
     }catch(Exception e) {}
-    
+
     if (event == null) {
       return null;
     }
-    
+
     switch(event) {
     case onScrollChanged:
       ScrollEvent scrollEvent = (ScrollEvent)data;
@@ -661,7 +662,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
             float divH = contentToView(mapDivLayoutJSON.getLong("height"));
             float divLeft = contentToView(mapDivLayoutJSON.getLong("left"));
             float divTop = contentToView(mapDivLayoutJSON.getLong("top"));
-    
+
             mPluginLayout.setDrawingRect(
                 divLeft,
                 divTop - scrollEvent.nt, 
@@ -672,52 +673,52 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           }
         }
       }
-      
+
       break;
     }
-    
+
     return null;
   }
 
   private void closeWindow() {
-      try {
-        Method method = webView.getClass().getMethod("hideCustomView");
-        method.invoke(null);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    try {
+      Method method = webView.getClass().getMethod("hideCustomView");
+      method.invoke(null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
   @SuppressWarnings("unused")
   private void showDialog(final JSONArray args, final CallbackContext callbackContext) {
     if (windowLayer != null) {
       return;
     }
-    
+
     // window layout
     windowLayer = new LinearLayout(activity);
     windowLayer.setPadding(0, 0, 0, 0);
     LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
     windowLayer.setLayoutParams(layoutParams);
-    
-    
+
+
     // dialog window layer
     FrameLayout dialogLayer = new FrameLayout(activity);
     dialogLayer.setLayoutParams(layoutParams);
     //dialogLayer.setPadding(15, 15, 15, 0);
     dialogLayer.setBackgroundColor(Color.LTGRAY);
     windowLayer.addView(dialogLayer);
-    
+
     // map frame
     final FrameLayout mapFrame = new FrameLayout(activity);
     mapFrame.setPadding(0, 0, 0, (int)(40 * density));
     dialogLayer.addView(mapFrame);
-    
+
     if (this.mPluginLayout != null && 
         this.mPluginLayout.getMyView() != null) {
       this.mPluginLayout.detachMyView();
     }
-    
+
     ViewGroup.LayoutParams lParams = (ViewGroup.LayoutParams) mapView.getLayoutParams();
     if (lParams == null) {
       lParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -741,7 +742,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       mapView.setLayoutParams(params);
     } 
     mapFrame.addView(this.mapView);
-    
+
     // button frame
     LinearLayout buttonFrame = new LinearLayout(activity);
     buttonFrame.setOrientation(LinearLayout.HORIZONTAL);
@@ -750,7 +751,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
     buttonFrame.setLayoutParams(buttonFrameParams);
     dialogLayer.addView(buttonFrame);
-    
+
     //close button
     LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT,
@@ -765,7 +766,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     closeLink.setOnClickListener(GoogleMaps.this);
     closeLink.setId(CLOSE_LINK_ID);
     buttonFrame.addView(closeLink);
-    
+
     //license button
     TextView licenseLink = new TextView(activity);
     licenseLink.setText("Legal Notices");
@@ -777,13 +778,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     licenseLink.setOnClickListener(GoogleMaps.this);
     licenseLink.setId(LICENSE_LINK_ID);
     buttonFrame.addView(licenseLink);
-    
+
     webView.setVisibility(View.GONE);
     root.addView(windowLayer);
-    
+
     //Dummy view for the back-button event
     FrameLayout dummyLayout = new FrameLayout(activity);
-    
+
     /*
     this.webView.showCustomView(dummyLayout, new WebChromeClient.CustomViewCallback() {
 
@@ -798,13 +799,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         root.removeView(windowLayer);
         webView.setVisibility(View.VISIBLE);
         windowLayer = null;
-        
-        
+
+
         GoogleMaps.this.onMapEvent("map_close");
       }
     });
-    */
-    
+     */
+
     this.sendNoResult(callbackContext);
   }
 
@@ -823,13 +824,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       return;
     }
     this.mPluginLayout.clearHTMLElement();
-    
+
     for (int i = 0; i < HTMLs.length(); i++) {
       elemInfo = HTMLs.getJSONObject(i);
       try {
         elemId = elemInfo.getString("id");
         elemSize = elemInfo.getJSONObject("size");
-        
+
         divW = contentToView(elemSize.getLong("width"));
         divH = contentToView(elemSize.getLong("height"));
         divLeft = contentToView(elemSize.getLong("left"));
@@ -844,7 +845,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     this.sendNoResult(callbackContext);
   }
 
-  
+
   private void updateMapViewLayout() {
     if (mPluginLayout == null) {
       return;
@@ -867,7 +868,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       e.printStackTrace();
     }
   }
-  
+
   @SuppressWarnings("unused")
   private void closeDialog(final JSONArray args, final CallbackContext callbackContext) {
     this.closeWindow();
@@ -876,7 +877,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
 
   @SuppressWarnings("unused")
   private void isAvailable(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    
+
     // ------------------------------
     // Check of Google Play Services
     // ------------------------------
@@ -887,7 +888,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       callbackContext.error("Google Maps Android API v2 is not available, because this device does not have Google Play Service.");
       return;
     }
-    
+
 
     // ------------------------------
     // Check of Google Maps Android API v2
@@ -900,13 +901,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       callbackContext.error(e.getMessage());
       return;
     }
-    
+
     callbackContext.success();
   }
 
   @SuppressWarnings("unused")
   private void getMyLocation(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    
+
     LocationManager locationManager = (LocationManager) this.activity.getSystemService(Context.LOCATION_SERVICE);
     List<String> providers = locationManager.getAllProviders();
     if (providers.size() == 0) {
@@ -917,17 +918,17 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       callbackContext.error(result);
       return;
     }
-    
+
     // enableHighAccuracy = true -> PRIORITY_HIGH_ACCURACY
     // enableHighAccuracy = false -> PRIORITY_BALANCED_POWER_ACCURACY
-    
+
     JSONObject params = args.getJSONObject(0);
     boolean isHigh = false;
     if (params.has("enableHighAccuracy")) {
       isHigh = params.getBoolean("enableHighAccuracy");
     }
     final boolean enableHighAccuracy = isHigh;
-    
+
     String provider = null;
     if (enableHighAccuracy == true) {
       if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -954,35 +955,35 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           " - Enable Google apps location access\n\n" +
           " - Turn on GPS and mobile network location");
       builder.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-              //Launch settings, allowing user to make a change
-              Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-              activity.startActivity(intent);
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+          //Launch settings, allowing user to make a change
+          Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+          activity.startActivity(intent);
 
-              JSONObject result = new JSONObject();
-              try {
-                result.put("status", false);
-                result.put("error_code", "open_settings");
-                result.put("error_message", "User opened the settings of location service. So try again.");
-              } catch (JSONException e) {}
-              callbackContext.error(result);
-          }
+          JSONObject result = new JSONObject();
+          try {
+            result.put("status", false);
+            result.put("error_code", "open_settings");
+            result.put("error_message", "User opened the settings of location service. So try again.");
+          } catch (JSONException e) {}
+          callbackContext.error(result);
+        }
       });
       builder.setNegativeButton("Skip", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-              //No location service, no Activity
-              dialog.dismiss();
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+          //No location service, no Activity
+          dialog.dismiss();
 
-              JSONObject result = new JSONObject();
-              try {
-                result.put("status", false);
-                result.put("error_code", "service_denied");
-                result.put("error_message", "This app has rejected to use Location Services.");
-              } catch (JSONException e) {}
-              callbackContext.error(result);
-          }
+          JSONObject result = new JSONObject();
+          try {
+            result.put("status", false);
+            result.put("error_code", "service_denied");
+            result.put("error_message", "This app has rejected to use Location Services.");
+          } catch (JSONException e) {}
+          callbackContext.error(result);
+        }
       });
       builder.create().show();
       return;
@@ -995,11 +996,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       callbackContext.success(result);
       return;
     }
-    
+
     PluginResult tmpResult = new PluginResult(PluginResult.Status.NO_RESULT);
     tmpResult.setKeepCallback(true);
     callbackContext.sendPluginResult(tmpResult);
-    
+
     locationClient = new LocationClient(this.activity, new ConnectionCallbacks() {
 
       @Override
@@ -1022,13 +1023,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
             } catch (JSONException e) {}
             locationClient.disconnect();
           }
-        
+
         });
       }
 
       @Override
       public void onDisconnected() {}
-      
+
     }, new OnConnectionFailedListener() {
 
       @Override
@@ -1038,11 +1039,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         PluginResult result = new PluginResult(PluginResult.Status.ERROR, errorMsg);
         callbackContext.sendPluginResult(result);
       }
-      
+
     });
     locationClient.connect();
   }
-  
+
   private void showLicenseText() {
     AsyncLicenseInfo showLicense = new AsyncLicenseInfo(activity);
     showLicense.execute();
@@ -1060,13 +1061,13 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   private void onMarkerEvent(String eventName, Marker marker) {
     String markerId = "marker_" + marker.getId();
     webView.loadUrl("javascript:plugin.google.maps.Map." +
-                  "_onMarkerEvent('" + eventName + "','" + markerId + "')");
+        "_onMarkerEvent('" + eventName + "','" + markerId + "')");
   }
   private void onOverlayEvent(String eventName, String overlayId, LatLng point) {
     webView.loadUrl("javascript:plugin.google.maps.Map." +
         "_onOverlayEvent(" +
-          "'" + eventName + "','" + overlayId + "', " +
-          "new window.plugin.google.maps.LatLng(" + point.latitude + "," + point.longitude + ")" +
+        "'" + eventName + "','" + overlayId + "', " +
+        "new window.plugin.google.maps.LatLng(" + point.latitude + "," + point.longitude + ")" +
         ")");
   }
   private void onPolylineClick(Polyline polyline, LatLng point) {
@@ -1089,7 +1090,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   @Override
   public boolean onMarkerClick(Marker marker) {
     this.onMarkerEvent("click", marker);
-    
+
     JSONObject properties = null;
     String propertyId = "marker_property_" + marker.getId();
     PluginEntry pluginEntry = this.plugins.get("Marker");
@@ -1112,7 +1113,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     return true;
     //return false;
   }
-  
+
   @Override
   public void onInfoWindowClick(Marker marker) {
     this.onMarkerEvent("info_click", marker);
@@ -1142,7 +1143,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   private void onMapEvent(final String eventName) {
     webView.loadUrl("javascript:plugin.google.maps.Map._onMapEvent('" + eventName + "')");
   }
-  
+
   /**
    * Notify map event to JS
    * @param eventName
@@ -1150,7 +1151,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
    */
   private void onMapEvent(final String eventName, final LatLng point) {
     webView.loadUrl("javascript:plugin.google.maps.Map._onMapEvent(" +
-            "'" + eventName + "', new window.plugin.google.maps.LatLng(" + point.latitude + "," + point.longitude + "))");
+        "'" + eventName + "', new window.plugin.google.maps.LatLng(" + point.latitude + "," + point.longitude + "))");
   }
 
   @Override
@@ -1161,7 +1162,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   private double calculateDistance(LatLng pt1, LatLng pt2){
     float[] results = new float[1];
     Location.distanceBetween(pt1.latitude, pt1.longitude,
-                            pt2.latitude, pt2.longitude, results);
+        pt2.latitude, pt2.longitude, results);
     return results[0];
   }
   /**
@@ -1172,7 +1173,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     boolean hitPoly = false;
     String key;
     LatLngBounds bounds;
-    
+
     // Polyline
     PluginEntry polylinePlugin = this.plugins.get("Polyline");
     if(polylinePlugin != null) {
@@ -1195,20 +1196,20 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           bounds = (LatLngBounds) entry.getValue();
           if (bounds.contains(point)) {
             key = key.replace("bounds_", "");
-            
+
             polyline = polylineClass.getPolyline(key);
             points = polyline.getPoints();
-            
+
             if (polyline.isGeodesic()) {
               if (this.isPointOnTheGeodesicLine(points, point, threshold)) {
                 hitPoly = true;
                 this.onPolylineClick(polyline, point);
               }
             } else {
-                if (this.isPointOnTheLine(points, point)) {
-                  hitPoly = true;
-                  this.onPolylineClick(polyline, point);
-                }
+              if (this.isPointOnTheLine(points, point)) {
+                hitPoly = true;
+                this.onPolylineClick(polyline, point);
+              }
             }
           }
         }
@@ -1217,21 +1218,21 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         return;
       }
     }
-    
+
     // Loop through all polygons to check if within the touch point
     PluginEntry polygonPlugin = this.plugins.get("Polygon");
     if (polygonPlugin != null) {
       PluginPolygon polygonClass = (PluginPolygon) polygonPlugin.plugin;
-    
+
       for (HashMap.Entry<String, Object> entry : polygonClass.objects.entrySet()) {
         key = entry.getKey();
         if (key.contains("polygon_bounds_")) {
           bounds = (LatLngBounds) entry.getValue();
           if (bounds.contains(point)) {
-            
+
             key = key.replace("_bounds", "");
             Polygon polygon = polygonClass.getPolygon(key);
-            
+
             if (this.isPolygonContains(polygon.getPoints(), point)) {
               hitPoly = true;
               this.onPolygonClick(polygon, point);
@@ -1243,12 +1244,12 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         return;
       }
     }
-    
+
     // Loop through all circles to check if within the touch point
     PluginEntry circlePlugin = this.plugins.get("Circle");
     if (circlePlugin != null) {
       PluginCircle circleClass = (PluginCircle) circlePlugin.plugin;
-    
+
       for (HashMap.Entry<String, Object> entry : circleClass.objects.entrySet()) {
         Circle circle = (Circle) entry.getValue();
         if (this.isCircleContains(circle, point)) {
@@ -1260,12 +1261,12 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         return;
       }
     }
-    
+
     // Loop through ground overlays to check if within the touch point
     PluginEntry groundOverlayPlugin = this.plugins.get("GroundOverlay");
     if (groundOverlayPlugin != null) {
       PluginGroundOverlay groundOverlayClass = (PluginGroundOverlay) groundOverlayPlugin.plugin;
-    
+
       for (HashMap.Entry<String, Object> entry : groundOverlayClass.objects.entrySet()) {
         GroundOverlay groundOverlay = (GroundOverlay) entry.getValue();
         if (this.isGroundOverlayContains(groundOverlay, point)) {
@@ -1277,11 +1278,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         return;
       }
     }
-    
+
     // Only emit click event if no overlays hit
     this.onMapEvent("click", point);
   }
-  
+
   /**
    * Intersection for geodesic line
    * @ref http://my-clip-devdiary.blogspot.com/2014/01/html5canvas.html
@@ -1297,7 +1298,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     touchPoint = new Point();
     touchPoint.x = (int) (point.latitude * 100000);
     touchPoint.y = (int) (point.longitude * 100000);
-    
+
     for (int i = 0; i < points.size() - 1; i++) {
       p0 = new Point();
       p0.x = (int) (points.get(i).latitude * 100000);
@@ -1313,10 +1314,10 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         return true;
       }
     }
-    
+
     return false;
   }
-  
+
   /**
    * Intersection for non-geodesic line
    * @ref http://movingahead.seesaa.net/article/299962216.html
@@ -1358,17 +1359,17 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     VisibleRegion visibleRegion = projection.getVisibleRegion();
     LatLngBounds bounds = visibleRegion.latLngBounds;
     Point sw = projection.toScreenLocation(bounds.southwest);
-    
+
     Point touchPoint = projection.toScreenLocation(point);
     touchPoint.y = sw.y - touchPoint.y;
     double vt;
-    
+
     for (int i = 0; i < path.size() - 1; i++) {
       Point a = projection.toScreenLocation(path.get(i));
       a.y = sw.y - a.y;
       Point b = projection.toScreenLocation(path.get(i + 1));
       b.y = sw.y - b.y;
-      
+
       if ((a.y <= touchPoint.y) && (b.y > touchPoint.y)) {
         vt = ((double)touchPoint.y - (double)a.y) / ((double)b.y - (double)a.y);
         if (touchPoint.x < ((double)a.x + (vt * ((double)b.x - (double)a.x)))) {
@@ -1381,10 +1382,10 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         }
       }
     }
-    
+
     return (wn != 0);
   }
-  
+
   /**
    * Check if a circle contains a point
    * @param circle
@@ -1397,18 +1398,18 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     double cY = center.longitude;
     double pX = point.latitude;
     double pY = point.longitude;
-    
+
     float[] results = new float[1];
-    
+
     Location.distanceBetween(cX, cY, pX, pY, results);
-    
+
     if(results[0] < r) {
       return true;
     } else {
       return false;
     }
   }
-  
+
   /**
    * Check if a ground overlay contains a point
    * @param groundOverlay
@@ -1416,10 +1417,10 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
    */
   private boolean isGroundOverlayContains(GroundOverlay groundOverlay, LatLng point) {
     LatLngBounds groundOverlayBounds = groundOverlay.getBounds();
-    
+
     return groundOverlayBounds.contains(point);
   }
-  
+
   @Override
   public boolean onMyLocationButtonClick() {
     webView.loadUrl("javascript:plugin.google.maps.Map._onMapEvent('my_location_button_click')");
@@ -1478,7 +1479,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     super.onDestroy();
   }
-  
+
 
   @Override
   public void onClick(View view) {
@@ -1492,7 +1493,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
       return;
     }
   }
-  
+
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
   @Override
   public View getInfoContents(Marker marker) {
@@ -1501,7 +1502,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     if ((title == null) && (snippet == null)) {
       return null;
     }
-    
+
     JSONObject properties = null;
     JSONObject styles = null;
     String propertyId = "marker_property_" + marker.getId();
@@ -1516,7 +1517,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         } catch (JSONException e) {}
       }
     }
-    
+
 
     // Linear layout
     LinearLayout windowLayer = new LinearLayout(activity);
@@ -1531,11 +1532,11 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     //----------------------------------------
     int gravity = Gravity.LEFT;
     int textAlignment = View.TEXT_ALIGNMENT_GRAVITY;
-    
+
     if (styles != null) {
       try {
         String textAlignValue = styles.getString("text-align");
-        
+
         switch(TEXT_STYLE_ALIGNMENTS.valueOf(textAlignValue)) {
         case left:
           gravity = Gravity.LEFT;
@@ -1550,10 +1551,10 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           textAlignment = View.TEXT_ALIGNMENT_VIEW_END;
           break;
         }
-        
+
       } catch (Exception e) {}
     }
-    
+
     if (title != null) {
       if (title.indexOf("data:image/") > -1 && title.indexOf(";base64,") > -1) {
         String[] tmp = title.split(",");
@@ -1566,7 +1567,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         TextView textView = new TextView(this.cordova.getActivity());
         textView.setText(title);
         textView.setSingleLine(false);
-        
+
         int titleColor = Color.BLACK;
         if (styles != null && styles.has("color")) {
           try {
@@ -1578,7 +1579,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         if (VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
           textView.setTextAlignment(textAlignment);
         }
-        
+
         //----------------------------------------
         // font-style = normal | italic
         // font-weight = normal | bold
@@ -1597,7 +1598,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
           } catch (JSONException e) {}
         }
         textView.setTypeface(Typeface.DEFAULT, fontStyle);
-        
+
         windowLayer.addView(textView);
       }
     }
@@ -1641,7 +1642,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
         ((MyPlugin) pluginEntry.plugin).clear();
       }
     }
-    
+
     this.map.clear();
     this.sendNoResult(callbackContext);
   }
@@ -1684,7 +1685,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     this.sendNoResult(callbackContext);
   }
-  
+
   /**
    * Set the app background
    * @param args
@@ -1705,7 +1706,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     this.sendNoResult(callbackContext);
   }
-  
+
   /**
    * Set the debug flag of myPluginLayer
    * @param args
@@ -1720,7 +1721,7 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
     }
     this.sendNoResult(callbackContext);
   }
-  
+
   /**
    * Destroy the map completely
    * @param args
@@ -1752,6 +1753,59 @@ public class GoogleMaps extends CordovaPlugin implements View.OnClickListener, O
   protected void sendNoResult(CallbackContext callbackContext) {
     PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
     callbackContext.sendPluginResult(pluginResult);
+  }
+
+  @SuppressWarnings("unused")
+  private void checkGPSOption(JSONArray args, CallbackContext callbackContext) throws JSONException {
+    final CallbackContext mCallbackContext = callbackContext;
+    final Activity mActivity = this.activity;
+    final LocationManager mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+    JSONObject mDialogContents = args.getJSONObject(0);
+
+    
+    if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+      builder.setTitle(mDialogContents.getString("title"));
+      builder.setMessage(mDialogContents.getString("body"));
+      builder.setPositiveButton(mDialogContents.getString("open"), new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+          //Launch settings, allowing user to make a change
+          final Intent gpsSettingIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+          mActivity.startActivity(gpsSettingIntent);
+
+          JSONObject result = new JSONObject();
+          try {
+            result.put("status", true);
+            result.put("action", "OPEN_SETTINGS");
+          } catch (JSONException e) {}
+          mCallbackContext.success(result);
+        }
+      });
+      builder.setNegativeButton(mDialogContents.getString("cancel"), new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+          //No location service, no Activity
+          dialog.dismiss();
+
+          JSONObject result = new JSONObject();
+          try {
+            result.put("status", true);
+            result.put("action", "SKIP_SETTINGS");
+          } catch (JSONException e) {}
+          mCallbackContext.success(result);
+        }
+      });
+      builder.create().show();
+    } else {
+      JSONObject result = new JSONObject();
+      try {
+        result.put("status", true);
+        result.put("action", "GPS_ALREADY_ON");
+      } catch (JSONException e) {}
+      mCallbackContext.success(result);
+    }
+    return;
   }
 
 }

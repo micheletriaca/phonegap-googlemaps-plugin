@@ -745,4 +745,14 @@ NSLog(@"---status=authorized");
   CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+
+- (void)checkGPSOption:(CDVInvokedUrlCommand *)command{
+    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+    
+    [json setObject:[NSNumber numberWithBool:YES] forKey:@"status"];
+    [json setObject:@"NO_ACTION" forKey:@"action"];
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:json];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 @end

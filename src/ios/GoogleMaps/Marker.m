@@ -460,7 +460,7 @@
                     }
                     
                     
-                    image = [[UIImage alloc] initWithData:decodedData];
+                    image = [[UIImage alloc] initWithData:decodedData scale:2];
                     if (width && height) {
                         image = [image resize:width height:height];
                     }
@@ -501,7 +501,7 @@
              */
             NSData *imgData = [self.iconCache objectForKey:iconPath];
             if (imgData != nil) {
-                UIImage* image = [UIImage imageWithData:imgData];
+                UIImage* image = [UIImage imageWithData:imgData scale:2];
                 if (width && height) {
                     image = [image resize:width height:height];
                 }
@@ -514,7 +514,7 @@
                     
                     [self.iconCache setObject:data forKey:iconPath];
                     
-                    UIImage* image = [UIImage imageWithData:data];
+                    UIImage* image = [UIImage imageWithData:data scale:2];
                     if (width && height) {
                         image = [image resize:width height:height];
                     }

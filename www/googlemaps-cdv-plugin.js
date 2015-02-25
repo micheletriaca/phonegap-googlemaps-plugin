@@ -1,4 +1,4 @@
-/* global cordova, plugin, CSSPrimitiveValue */
+cordova.define("plugin.google.maps.phonegap-googlemaps-plugin", function(require, exports, module) { /* global cordova, plugin, CSSPrimitiveValue */
 var PLUGIN_NAME = 'GoogleMaps';
   var MARKERS = {};
   var KML_LAYERS = {};
@@ -2206,8 +2206,36 @@ function getAllChildren(root) {
   return list;
 }
 
+App.prototype.checkGPSOption = function(param, success_callback, error_callback) {
+  param = param || {
+    title : "Modificare le impostazioni di localizzazione?",
+    body : "Per migliorare la localizzazione è necessario aggiornare le impostazioni del dispositivo.\nGli aggiornamenti includono:\n\n" +
+          " - Utilizzare GPS, Wi-Fi e reti cellulari per rilevare la posizione\n" +
+          " - Abilitare il servizio di localizzazione di Google",
+    open : 'Impostazioni',
+    cancel : 'Annulla'
+  };
+  success_callback = success_callback || null;
+  error_callback = error_callback || null;
+  
+  var self = this;
+  var successHandler = function(result) {
+    if (typeof success_callback === "function") {
+      success_callback.call(self, result);
+    }
+  };
+  var errorHandler = function(result) {
+    if (typeof error_callback === "function") {
+      error_callback.call(self, result);
+    }
+  };
+  cordova.exec(successHandler, errorHandler, PLUGIN_NAME, 'checkGPSOption', [param]);
+};
+
 
 document.addEventListener("deviceready", function() {
   document.removeEventListener("deviceready", arguments.callee);
   plugin.google.maps.Map.isAvailable();
+});
+
 });
