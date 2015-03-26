@@ -512,7 +512,7 @@
                     NSURL *url = [NSURL URLWithString:iconPath];
                     NSData *data = [NSData dataWithContentsOfURL:url options:NSDataReadingMapped error:nil];
                     
-                    [self.iconCache setObject:data forKey:iconPath];
+                    if (data != nil) [self.iconCache setObject:data forKey:iconPath];
                     
                     UIImage* image = [UIImage imageWithData:data scale:2];
                     if (width && height) {

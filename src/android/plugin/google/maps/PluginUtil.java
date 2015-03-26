@@ -167,8 +167,8 @@ public class PluginUtil {
     }
     
     float density = Resources.getSystem().getDisplayMetrics().density;
-    int newWidth = (int)(bitmap.getWidth() * density);
-    int newHeight = (int)(bitmap.getHeight() * density);
+    int newWidth = (int)(bitmap.getWidth() * density / 2);
+    int newHeight = (int)(bitmap.getHeight() * density / 2);
     /*
     Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
     */
