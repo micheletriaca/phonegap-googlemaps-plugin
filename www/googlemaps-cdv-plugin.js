@@ -1,4 +1,3 @@
-cordova.define("plugin.google.maps.phonegap-googlemaps-plugin", function(require, exports, module) { /* global cordova, plugin, CSSPrimitiveValue */
 var PLUGIN_NAME = 'GoogleMaps';
   var MARKERS = {};
   var KML_LAYERS = {};
@@ -2238,4 +2237,3 @@ document.addEventListener("deviceready", function() {
   plugin.google.maps.Map.isAvailable();
 });
 
-});
