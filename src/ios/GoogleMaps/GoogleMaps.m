@@ -164,7 +164,7 @@
       [self.mapCtrl.plugins setObject:mapClass forKey:@"Map"];
       
       
-      dispatch_sync(dispatch_get_main_queue(), ^{
+      dispatch_async(dispatch_get_main_queue(), ^{
         if ([command.arguments count] == 3) {
           [self.mapCtrl.view removeFromSuperview];
           self.mapCtrl.isFullScreen = NO;
